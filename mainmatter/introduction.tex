@@ -1,0 +1,90 @@
+\chapter{INTRODUCTION\label{chapter:introduction}}
+
+The ever-increasing proliferation of online text means that information is available on essentially any topic. However, it has become increasingly difficult to distinguish between fake and real information. For example, in a recent survey around 67\% Americans reported that fake news causes confusion about simple information that they read online and 54\% say that fake news affects their confidence in other people they interact with, making fake news a very important societal issue. Clearly, ever-improving tools are needed to handle this massive (and growing) abundance of fake information, and the vast majority of this data is in the form of natural language. While certain fake information texts can be classified using statistics, in order to handle a new fake information text, the system must be able to compare that information with other reliable knowledge sources and \textit{infer} what the desired result is from the given text.
+
+
+%Our \textit{rationale} is that, for many individuals now social media content is an accurate reflection of reality and thus provides a sufficient and convenient alternative to finding accurate information otherwise from reliable and reputed sources. However, it this blind reliance on information shared through social media by their peers that abets these individuals being misled by fake information. The \textit{central hypothesis} for the proposed work is that such a truthfulness awareness initiative will reach a much larger percentage of the individuals who are at the risk of unknowingly being duped by fake information. Furthermore, this effort requires the development of novel neural network methods that mitigate over fitting, which will benefit the field at large.
+
+Specifically, in the natural language processing world, this problem is called \textit{fact verification} which is considered a sub task of the
+natural language inference task. NLI is the task of determining if one piece of text can be plausibly inferred from another. The first piece of text is typically called a claim or hypothesis while the second piece of text is called an evidence or a premise. Thus given a pair of claim and evidence sentences, the task then is to classify them into 3 classes, depending on whether they \texttt{agree}, \texttt{disagree} or are \texttt{neutral} to each other.
+
+Simply put NLI incorporates natural language understanding capabilities in a very simple interface: detecting when the meaning of one piece of text is contained in the meaning of another. This straightforward representation of a difficult problem appeals to a wide range of people, in part because it can be used as a component in a variety of different NLP applications, such as Machine Translation, Semantic Search, and Information Extraction. It also avoids committing to a certain meaning representation and reasoning paradigm, allowing it to appeal to a broader range of researchers.
+
+
+However, the key differences between fact verification task and NLI are as follows: In NLI systems the evidence to verify each claim is given, whereas in fact verification systems, the passage is typically retrieved from a large set of documents (e.g., Wikipedia or news articles) in order to form the evidence. Also in NLI both the passages to verify has typically consisted of a single sentence while in fact verification the evidence is usually longer passages. Also the labels of the classification tasks are also different. For example, in the 2018 Fact Extraction and Verification (FEVER) challenge \citep{thorne2018fever}, the NLI module was used determine if a given set of evidence sentences, when compared with the claim provided, can be classified into either of \texttt{supports}, \texttt{refutes}, or \texttt{not enough information}. 
+
+In this work we tackle the fake information problem as a fact verification task.  
+
+
+to achieve that it is important that the datasets and models used for this purpose need to be made robust by creating neural network methods which can learn knowledge that is domain transferable. Next we elaborate on why this is important.
+ 
+ \section{Need for domain transferable learning}
+ 
+ 
+ 
+While there have been several methods created to address and automate online fact verification, humans still seem to have a better ability than machines to distinguish good facts from bad facts. We\footnote{Unless otherwise specified, plural first-person pronouns refer to my collaborators and I, where collaborators come mostly from the computational language understanding (CLU) lab at the University of Arizona.}  believe this is because we use background and domain knowledge while these methods only look at facts as independent silos. Inspired from this observation, my research aims on building robust methods for fact verification by aggregating information across multiple fact datasets (e.g., Wikipedia based datasets or news articles based ones). To thus achieve information aggregation for fact verification, it is important that the neural network methods used for training over these facts be made robust by having them learn knowledge that is transferable from one domain to another.
+
+To ensure robustness in a task, not only should the neural network learning methods used be domain transferable, but the corresponding datasets also must be bias free. Next we discuss why that is important.
+
+\section{Neural Network Overfitting On Patterns}
+
+ In order to advance any task in natural language processing, quality data sets are quintessential. Some such data sets which have enabled the advancement of NLI (and fact verification) are SNLI \citep{bowman2015large} MNLI \citep{williams2017broad}, FEVER \citep{thorne2018fever}, and FNC \citep{pomerleau2017fake}. However these datasets are not devoid of biases (subtle statistical patterns in a dataset, which could have been introduced either due to the methodology of data collection or due to an inherent social bias). 
+For example, \citep{gururangan2018annotation} and \citep{poliak2018hypothesis} show that biases were introduced into the MNLI dataset by certain language creation choices made by the crowd workers. Similarly, \citep{schuster2019towards} show that in the 2018 Fact Extraction and Verification (FEVER) challenge \citep{thorne2018fever}, the \texttt{refutes} label highly correlates with the presence of negation phrases. 
+
+These biases can be readily exploited by neural networks (NNs), and thus have influence on performance.  As an example, \citep{gururangan2018annotation} demonstrate that many state of the art methods in NLI could still achieve reasonable accuracies when trained with the hypothesis alone. Similarly, \citep{emnlp2019sandeep} show that some NN methods in NLI with very high performance accuracies are heavily dependent on lexical information. Further ~\citep{yadav2019alignment} show that this issue is relevant not just in NLI but in other NLP applications such as question answering (QA) also.
+
+
+This tendency of NNs to inadvertantly exploit such dataset artifacts is likely worsened by the fact that currently the success of NLP approaches is almost exclusively measured by empirical performance on benchmark datasets. While this emphasis on performance has facilitated the development of practical solutions, they may lack guidance as they are often not motivated by more general linguistic principles or human intuition. This makes it difficult to accurately judge the degree to which these methods actually extract reasonable representations, correlate with  human intuition or understand the underlying semantics~\citep{dagan2013recognizing}. Thus in order to build a robust system for fact verification, the first step is to find quality datasets and ensure that they are devoid of biases. 
+ 
+ 
+%While there have been several methods created to address and automate online fact verification, humans still seem to have a better ability than machines to distinguish good facts from bad facts. I believe this is because we use background and domain knowledge while these methods only look at facts as independent silos. Inspired from this observation, my research aims on building robust methods for fact verification by aggregating information across multiple facts (e.g., based on whether the facts support or refute with each other) and aim to reach global conclusions from this aggregation. 
+%To achieve information aggregation for fact verification, relevant facts must be mined and included into a graph where nodes represent facts and edges represent the relation between them. 
+%Further, these graphs must be analyzed using a holistic scoring and ranking algorithm which assigns a truthfulness score for any given piece of text.
+%As a first step towards this goal, I believe, it is important that these graphs need to be made robust by creating neural network methods which can learn knowledge that is domain transferable.
+
+ 
+ 
+ \section{Contributions}
+ 
+ With this work we tackle the challenging task of fact verification, seeking methods which balance the demands of robustness, accuracy and transferability. We address these challenges with three approaches. In particular, the specific contributions of this work are:
+ 
+ 
+ \subsection{Delexicalizing fact verification datasets to improve domain transfer }
+ 
+  First we inspect and confirm that neural networks depend heavily on certain statistical nuances and lexical artifacts found in  datasets. We do that by inspecting the attention weights assigned by models trained in a fact verification task. Here we show that attention weights tend to be directed towards words and noun phrases that are more likely to be domain specific, and it considerably
+impacts performance in an out-of-domain setting.
+
+Next, to mitigate this dependence on lexicalized information we devise some novel de-lexicalization methods
+that replace concepts with their respective semantic classes \cite{panenghat2020towards,suntwal-etal-2019-importance}. While these techniques of delexicalization (or masking) have been used before~\citep{zeman2008cross}, we have expanded it by incorporating semantic information (the assumption that meaning arises from a set of independent and discrete semantic units)~\citep{peyrard2019simple}. Since these techniques are general and compatible with most existing semantic representations, we believe they can be further extended onto datasets used for other NLI tasks. Thus, by enabling integration of these techniques into the training pipeline, we hope to control lexicalization in the datasets which the neural network methods possibly depend upon. 
+
+
+In particular, we  delexicalize two datasets used in Fact Verification, the FEVER and Fake News Challenge datasets. These datasets are delexicalized using several strategies which are based on human intuition and underlying linguistic semantics. For example, in one of these techniques, lexical tokens are replaced or masked with indicators corresponding to their named entity class \citep{grishman1996message}. Our work differs from early works on delexicalization \citep{zeman2008cross} in that we earmark overlapping entities (between the hypothesis and premise) with a unique id. Further we also  explore semantic lifting to WordNet synsets using Super Sense tags ~\citep{ciaramita2003supersense,miller1990introduction}.
+
+
+Further, we analyze and examine the effect of such delexicalization techniques on several state of the art methods in fact verification and confirm that these methods can still achieve comparative performance in domain. We also show that  in an out-of-domain set up, the model trained on delexicalized data outperforms that of the state of the art model trained on lexicalized data. This empirically supports our hypothesis that delexicalization is a necessary process for meaningful machine learning. Thus we show that altering the fact verification datasets based on lexical importance is beneficial for organizing research and guiding future empirical work in this field.
+
+
+\subsection{Creating a neural network based method to control over delexicalization}
+In the first chapter we show that our data distillation methods encourage neural networks to look beyond lexical patterns and extract underlying semantic knowledge that can be transferred from one domain to another. However, a drawback to this approach is that we don't know ahead of time what the successful strategy for level of delexicalization is. While a little delexicalization helps reduce over-fitting, too much delexicalization might discard useful information.
+
+
+
+As a solution to this we propose model distillation, a novel architecture based on the teacher-student paradigm \cite{hinton2015distilling}. In this architecture a teacher and student neural network method compete with each other to arrive at the right level of abstraction needed for data distillation. 
+Due to its ability to transfer learning across various domains, this approach aims to reduce the computational overhead and carbon footprint caused by having to train neural network based methods every time they need to make predictions on a new fact verification input. We show that that our method is not only efficient but also surpasses the current limit achieved by state of the art methods which do not use such abstraction techniques. 
+
+\section{Creating an architecture to automatically arrive at the right amount of delexicalization needed}
+
+
+
+ While the aforementioned delexicalization techniques reduced over fitting, a key unresolved issue in this direction was\textit{how much} delexicalization should be applied? We next show that combining these techniques with a model distillation strategy will arrive at the right level of delexicalization needed.
+
+In particular, we propose a novel architecture called group learning architecture, inspired from the teacher-student architecture mentioned in section 1.3.3. Specifically, in our architecture we use multiple copies of the same model, but each having access to different perspectives of the same data. Each such data versions are delexicalized with a different level of granularity. Additionally one model has access to the original plain-text data. The \textit{intuition} behind this approach is that the proposed architecture will enable various models to ``pull'' towards the original underlying semantics, which are partially obscured to them due their respective delexicalized versions of data. These models then will
+ compete with each other, and also learn from each other through pair-wise consistency losses, to arrive at the right level of abstraction needed for data distillation.
+  
+  Further we show that not only is our approach classifier agnostic, it also transfers learning across various domains \citep{mithun2021data}. Further, this approach  reduces the computational overhead (and, thus, carbon footprint) caused by having to train neural network based methods every time they need to make predictions on new fact verification domains or datasets.
+
+
+
+
+\section{Overview}
+The rest of this work is organized as follows. In Chapter 2 we outline the previous work relevant to our task. In Chapter 3 we detail the delexicalization techniques and show that it improves domain transferability. Then in Chapter 4 we present our work where we reduce over delexicalization using a student teacher architecture. In Chapter 5 we detail the approach that uses multiple models training simultaneously to arrive at an apt level of delexicalization needed for domain transfer. Finally in Chapter 6 we discuss the work as a whole as well as future directions. 
