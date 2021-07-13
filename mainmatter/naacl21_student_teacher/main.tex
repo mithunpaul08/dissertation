@@ -1,32 +1,24 @@
 
 \chapter{Data and Model Distillation as a Solution for\\Domain-transferable Fact Verification \label{chapter:naacl21}}
 
-\section{Introduction}
+Neural networks have matched, and in several cases even surpassed, human performance in several supervised learning problems. However, such successes come at a cost. These neural networks typically need a great deal of human support in the form of man power required for curating domain specific datasets. 
 
-Neural networks have matched, and in several cases even surpassed, human performance in several supervised learning problems. However, such successes come at a cost. These neural networks typically need a great deal of human support in the form of man power required for curating domain specific datasets. Further, it has been shown \cite{gururangan-etal-2018-annotation, poliak-etal-2018-hypothesis,thorne2020avoiding} that several such models depend heavily on certain statistical nuances found in these datasets, information that transfers poorly between domains. The ideal solution to this problem is the creation of models that do not rely on such statistical nuances in the given datasets, but instead encode the true underlying semantics of the task, that are in turn transferable to other domains.
+In the previous chapter we showed that several such models depend heavily on certain statistical nuances found in these datasets, information that transfers poorly between domains. To mitigate the dependency on such artifacts, in the previous chapter we introduced  a {\em data distillation} (or delexicalization) approach, which replaces some lexical artifacts such as named entities with their type and a unique id to indicate occurrence of the same artifact in claim and evidence. While promising, the risk of this direction is discarding too much information through the delexicalization process. For example, replacing {\em China} with its named entity (NE) type ({\tt COUNTRY}) in an evidence sentence discards the fact that the text is about an Asian country which might be relevant in the context.
+
+In this chapter we propose a solution that combines data distillation with {\em model distillation} to reduce the risk of over delexicalization. In particular, we introduce a teacher-student architecture inspired from that of \cite{tarvainen2017mean}. In our architecture, the student model is trained on delexicalized data (to take advantage of data distillation), but is also guided by a teacher trained on the original lexicalized data (as a form of model distillation) to mitigate the possibility of discarding too much lexical information. 
+
+Specifically, here we explore the combination of data and model distillation as a strategy to improve domain transfer of fact verification methods. Note that while our training process is more costly due to the combination of the student and teacher models, the output is a single individual model (the student), which has the same runtime cost as an individual classifier. Further, our approach is classifier agnostic, and can be coupled with any fact verification method.
+Further we investigate the domain transfer of our method between two fact verification tasks (FNC and FEVER), where we train on one and test on the other. For these experiments we couple our method with the state of the art fact verification approach based on transformers \citep{vaswani2017attention}. 
+
+\section{Chapter Overview}
+\todo{fill this after mihai approves flow}
 
 
-
-Fact verification is the task of verifying the truthfulness of claims by estimating their assertions against credible evidences. Specifically, given a pair of claim and evidence statements, they have to be classified into one of the 3 class labels, \textit{agree}, \textit{disagree}, or \textit{neutral}. Fact verification datasets, which often constitute real life news articles, have the added advantage of being used in practical problems such as fake news detection. More recently, several neural network models~\cite[inter alia]{nie-etal-2020-simple,liu-etal-2020-microsoft} built on top of the transformers \citep{vaswani2017attention}, have achieved excellent performance in fact verification tasks.
-
-However these methods are not devoid of the shortcomings that besiege other neural networks in natural language processing tasks. It has been shown that these approaches depend heavily on lexical artifacts that transfer poorly between domains \cite{panenghat2020towards,karimi-mahabadi-etal-2020-end,schuster-etal-2019-towards}. For example, \citet{suntwal-etal-2019-importance} observed that out of all the statements containing the phrase `American Author' in  the FEVER dataset~\citep{thorne-etal-2018-fact}, 91\% of them belonged to one class label. Further, they demonstrated that neural methods put unnecessary emphasis on such lexical artifacts, which limits their transfer to other fact verification datasets such as the Fake News Challenge (FNC) \citep{pomerleau2017fake}.
-
-
-To mitigate the dependency on such artifacts, \citet{suntwal-etal-2019-importance} proposed a {\em data distillation} (or delexicalization) approach, which replaces some lexical artifacts such as named entities with their type and a unique id to indicate occurrence of the same artifact in claim and evidence. While promising, the risk of this direction is discarding too much information through the delexicalization process. For example, replacing {\em China} with its named entity (NE) type ({\tt COUNTRY}) in an evidence sentence discards the fact that the text is about an Asian country which might be relevant in the context.
-
-In this work we propose a solution that combines data distillation with {\em model distillation} to reduce the risk of over delexicalization. In particular, we introduce a teacher-student architecture inspired from that of \cite{tarvainen2017mean}. In our architecture, the student model is trained on delexicalized data (to take advantage of data distillation), but is also guided by a teacher trained on the original lexicalized data (as a form of model distillation) to mitigate the possibility of discarding too much lexical information. The contributions of our work are as follows:
-{\flushleft {\bf (1)}} To our knowledge, we are the first to explore the combination of data and model distillation as a strategy to improve domain transfer of fact verification methods. Note that while our training process is more costly due to the combination of the student and teacher models, the output is a single individual model (the student), which has the same runtime cost as an individual classifier. Further, our approach is classifier agnostic, and can be coupled with any fact verification method.
-{\flushleft {\bf (2)}} We investigate the domain transfer of our method between two fact verification tasks (FNC and FEVER), where we train on one and test on the other. For these experiments we couple our method with the state of the art fact verification approach based on transformers \citep{vaswani2017attention}. Our results indicate that our method achieves a cross-domain accuracy of 73.17\% in one of the experiments and 74.58\% in the other, outperforming other methods that do not use the data distillation-model distillation combination.
-
-All the software for our proposed approach is open-source and publicly available on GitHub at: \url{https://github.com/clulab/releases/tree/master/naacl2021-student-teacher}.
-
-\section{Methodology}
+\section{Approach}
 
 \subsection{Data distillation}
 
-\citet{suntwal-etal-2019-importance} demonstrated that named entities are most prone to overfitting for fact verification.
-Based on this observation, we also replace named entities with their type (and a unique id).
-However, unlike their work, we have observed in early experiments that more fine-grained NE types yield better models. In particular, we utilize the FIGER  named entity recognizer (NER) \citep{ling2012fine} to detect and replace named entities with their most specific label returned by the NER. Further, we also process the text with the CoreNLP NER \citep{manning2014stanford} to delexicalize additional NER classes not covered by FIGER. We include in this list mentions of date, time, money, number, and ordinal.
+In the previous chapter we demonstrated that named entities are most prone to overfitting for fact verification. Based on this observation, we also replace named entities with their type (and a unique id). However, after those experiments we observed that more fine-grained NE types yield better models. In particular, we utilize the FIGER  named entity recognizer (NER) \citep{ling2012fine} to detect and replace named entities with their most specific label returned by the NER. Further, we also process the text with the CoreNLP NER \citep{manning2014stanford} to delexicalize additional NER classes not covered by FIGER. We include in this list mentions of date, time, money, number, and ordinal.
 
 
 \begin{table}[h]
@@ -69,11 +61,9 @@ The intuition behind our model distillation approach is that the proposed teache
 
 
 
-\subsection{Classifiers}
+\section{Models}
 
-We experiment with a state-of-the-art method for fact verification, transformers \citep{vaswani2017attention}, which has achieved state-of-the-art results not only in the task of fact verification but in several other NLP tasks. Specifically, we use the PyTorch implementation of BERT \cite{devlin-etal-2019-bert} from huggingface \citep{wolf2019huggingface}.
-
-We experimented with several pre-trained BERT-base models and found that the one which gave the highest performance was the BERT-cased model when used with a sequence length of 128. Further, to distinguish the vocabulary of the delexicalized data from the lexicalized data we augment the base vocabulary of BERT with tokens specific to the delexicalized data. For example, as mentioned before, during delexicalization we use \texttt{personC1} to denote the first occurence of the named entity in the claim paragraph. However, to ensure that the BERT BasicTokenizer does split \texttt{personC1} into \texttt{person}  and \texttt{C1}, we added the token ``C1'' to the BERT vocabulary. Tokenizers for each of the lexicalized and delexicalized dataset are initially created using BERT BasicTokenizer, but then use the aforementioned vocabulary created for the specific data type.
+In this chapter our experiments are with a state-of-the-art method for fact verification, transformers \citep{vaswani2017attention}, which has achieved state-of-the-art results not only in the task of fact verification but in several other NLP tasks. We use the PyTorch implementation of BERT \cite{devlin-etal-2019-bert} from huggingface \citep{wolf2019huggingface}. Specifically, we experimented with several pre-trained BERT-base models and found that the one which gave the highest performance was the BERT-cased model when used with a sequence length of 128. Further, to distinguish the vocabulary of the delexicalized data from the lexicalized data we augment the base vocabulary of BERT with tokens specific to the delexicalized data. For example, as mentioned before, during delexicalization we use \texttt{personC1} to denote the first occurence of the named entity in the claim paragraph. However, to ensure that the BERT BasicTokenizer does split \texttt{personC1} into \texttt{person}  and \texttt{C1}, we added the token ``C1'' to the BERT vocabulary. Tokenizers for each of the lexicalized and delexicalized dataset are initially created using BERT BasicTokenizer, but then use the aforementioned vocabulary created for the specific data type.
 
 
 
@@ -134,7 +124,7 @@ We focus our analysis on cross-domain evaluation, i.e., we train all models on o
 
 
 
-\subsection{Results}
+\section{Results}
 Table \ref{results_fnc} summarizes the results of our experiments with various models tested in-domain and cross-domain. All scores reported are averaged across three random seeds. We use `BERT Lex' as the baseline model which is the stand alone model trained on the original lexicalized data. `BERT Delex' denotes the standalone models trained on delexicalized data, along with the corresponding delexicalization techniques used. OA-NER uses the Overlap Aware Named Entity Recognizer for delexicalization of data and SS uses Super Sense tags \citep{suntwal-etal-2019-importance}. FIGER delexicalizes the data using a fine-grained named entity recognizer \citep{ling2012fine}.  `BERT TS' denotes the student in the proposed teacher-student architecture.  Since the delexicalization used by the best performing `BERT Delex' models in the cross-domain setting was FIGER, we chose it as the preferred delexicalization technique for this student.
 
 Note that the lexicalized models, which perform well in-domain, tend to transfer poorly to a new domain. For example, the BERT model trained
@@ -191,12 +181,6 @@ hence motivating the
 necessity of robust data distillation techniques such as delexicalization to minimize overfitting on lexical artifacts.
 We further combine delexicalization with a teacher-student architecture as a form of model distillation to reduce the risk of over-delexicalization. We hope that this solution will encourage the development of architectures capable of reducing the dependency of models on lexical artifacts in an effort to learn domain transferable knowledge in the task
 of fact verification.
-
-
-\section*{Acknowledgments}
-
-This work was supported by the Defense Advanced Research Projects Agency (DARPA) under the World Modelers program, grant number
-W911NF1810014, and by the Bill and Melinda Gates Foundation HBGDki Initiative. Mihai Surdeanu declares a financial interest in lum.ai. This interest has been properly disclosed to the University of Arizona Institutional Review Committee and is managed in accordance with its conflict of interest policies. The authors would also like to thank Becky Sharp and Marco Valenzuela-Escárcega for all their valuable comments and reviews.
 
 
 

@@ -1,39 +1,13 @@
-\chapter{Students Who Study Together Learn Better: On the Importance of Collective Knowledge Distillation for Domain Transfer in Fact Verification \label{chapter:emnlp2021}}
+\chapter{Group Learning: A Collective Knowledge Distillation Solution for Domain Transfer in Fact Verification \label{chapter:emnlp2021}}
 
-\section{Introduction}
+
 Neural networks have achieved state-of-the-art performance across many natural language processing (NLP) tasks, usually in supervised settings.
-%many by training on many human annotated domain specific datasets.
-However, it has been shown that there are limitations to these % models, % ms: "model" != "method" !!!!
+However, as shown before there are limitations to these 
 methods caused in part by their over-fitting on statistical and lexical nuances (or artifacts) specific to a dataset \citep{gururangan-etal-2018-annotation}, which
-% ms: irrelevant here
-%or it's hypothesis only dependency \cite{poliak-etal-2018-hypothesis}, or it's catastrophic forgetting \cite{thorne2020avoiding}.
-%Thus despite its tremendous success in in-domain datasets, these limitations
-prevent them from transferring well across domains. A key solution to solving this problem is to not let these models rely on such dataset artifacts, and instead encode the true underlying semantics of the dataset.
-Also, in recent years fact verification has emerged as a critical task with important societal implications \citep{vosoughi2018spread}. Formally, the task is defined as: given a pair of claim and evidence texts, determine if the evidence supports or rejects the claim, or simply does not have enough information to reach a conclusion.
-%The task has received significant attention in recent years where
-Several fact verification datasets have been proposed recently, based on real-world news articles \cite{pomerleau2017fake}, Wikipedia based knowledge bases \cite{thorne-etal-2018-fact}, fact verification websites \cite{wang2017liar}, etc. %have been proposed for solving the problem.
-Several transformer networks \citep{vaswani2017attention} based approaches % neural network models % ms: "model" != "method" !!!!
-\cite{liu-etal-2020-microsoft} have achieved state of the art performance on these tasks.
+prevent them from transferring well across domains. As shown in previous chapters a key solution to solving this problem is to not let these models rely on such dataset artifacts, and instead encode the true underlying semantics of the dataset. To mitigate this dependency on such artifacts, we created a data distillation (or delexicalization) approach, which replaces some lexical artifacts such as named entities with their type and a unique id to indicate occurrence of the same artifact in claim and evidence. Further we show that combining data distillation with a model distillation approach controls over delexicalization. 
 
-However, as shown in \citep{panenghat2020towards, karimi-mahabadi-etal-2020-end, gururangan-etal-2018-annotation}, these models are also similarly affected by syntactic and lexical artifacts seen in other NLP tasks. Specifically \citep{suntwal-etal-2019-importance} show the presence of such artifacts in the FEVER dataset \citep{thorne-etal-2018-fact}, along with demonstrating that this limits the ability of the trained models to transfer knowledge to other similar datasets such as the Fake News Challenge (FNC) dataset \citep{pomerleau2017fake}. To mitigate this dependency on such artifacts, they proposed a data distillation (or delexicalization) approach, which replaces some lexical artifacts such as named entities with their type and a unique id to indicate occurrence of the same artifact in claim and evidence. % claim and evidence. % ms: be consistent: use either hypothesis/premise or claim/evidence. Or define the synonyms early.
-%While promising, the risk of this direction is discarding too much information through the delexicalization process.
-
-A key unresolved issue in this direction is {\em how much} delexicalization to apply. As indicated in previous work, delexicalization reduces overfitting. But too much delexicalization may discard critical information, e.g., replacing {\em India} with its NE label, say {\tt LOCATION}, may remove contextual information about the country that is necessary for the correct classification of the claim-evidence pair. Our work proposes a solution for this problem, with the following contributions:
-
-
-
-
-
-{\flushleft {\bf (1)}} Inspired by teacher-student architectures, we propose a novel architecture that combines data distillation with model distillation to improve cross-domain performance of neural networks. In particular, our approach relies on multiple students that have access to different delexicalized views of the data, but are encouraged to learn from each other through pair-wise consistency losses. We call our approach \emph{Group Learning (GL)}. Once training completes, the student with the best performance is kept for evaluation purposes. Because we rely on a single model at evaluation time, our approach has the same evaluation run time cost as a single classifier. Note that our method can be seen as an inverse of an ensemble strategy, which trains individual models separately but applies them jointly. GL scales better at inference time due to its reliance on a single model at that stage.
-
-% To the best of our knowledge we are the first to combine data distillation with model distillation to improve cross-domain performance of neural network models. We achieve this by delexicalizing the data over various levels of abstraction. Specifically, we propose a \emph{Group Learning} architecture which combines data distillation and model distillation within the same neural network framework. Here multiple methods, each with a different level of data abstraction as input, train together in-turn learning from each other.
-
-{\flushleft {\bf (2)}} We implemented a GL architecture for fact verification using 
-%Mini BERT \cite {turc2019well} a light-weight version of 
-BERT \citep{devlin-etal-2019-bert}, as the classifier, and multiple delexicalized views of the data using FIGER and CoreNLP NER systems. %\todo{describe the NERs you used}.
-We evaluated the domain transfer of the proposed method using two fact verification datasets: FEVER and FNC.
-%To perform our experiments, we use Mini Bert \cite {turc2019well} a lightweight version of the BERT \citep{devlin-etal-2019-bert} model.
-Our results show that our method achieves a cross-domain accuracy of 73.06\% when trained on FEVER and tested on FNC, and 74.46\% in the other direction, outperforming other stand alone trained methods that rely on the lexicalized data. Importantly, our approach chooses different students in each direction, highlighting different properties of the respective training datasets.
+However, a key unresolved issue still is {\em how much} delexicalization to apply. As indicated in previous chapters, delexicalization reduces overfitting. But too much delexicalization may discard critical information, e.g., replacing {\em India} with its NE label, say {\tt LOCATION}, may remove contextual information about the country that is necessary for the correct classification of the claim-evidence pair. In this chapter we propose a solution for this problem. Inspired by teacher-student from previous chapter, we propose a novel architecture that combines data distillation with model distillation to improve cross-domain performance of neural networks. In particular, our approach relies on multiple students that have access to different delexicalized views of the data, but are encouraged to learn from each other through pair-wise consistency losses. We call our approach \emph{Group Learning (GL)}. Once training completes, the student with the best performance is kept for evaluation purposes. Because we rely on a single model at evaluation time, our approach has the same evaluation run time cost as a single classifier. Note that our method can be seen as an inverse of an ensemble strategy, which trains individual models separately but applies them jointly. GL scales better at inference time due to its reliance on a single model at that stage.Here  we implement a GL architecture for fact verification using 
+BERT \citep{devlin-etal-2019-bert}, as the classifier, and multiple delexicalized views of the data using FIGER and CoreNLP NER systems. We then evaluate the domain transfer of the proposed method using two fact verification datasets as before: FEVER and FNC. Our results show that our method achieves a cross-domain accuracy higher than that produced by previous two methods  Importantly, our approach chooses different students in each direction, highlighting different properties of the respective training datasets.
 
 
 \begin{table*}[t]
@@ -62,12 +36,11 @@ Our results show that our method achieves a cross-domain accuracy of 73.06\% whe
 \end{table*}
 
 
-\section{Methodology}
+\section{Approach}
 
 \subsection{Data Distillation}
 
-%Based on the findings of \citep{suntwal-etal-2019-importance} that named entities are most likely to overfit in a named entity task, we delelxicalize our data by replacing named entities with their semantic classes. In addition to their baseline of OA-NER , we add two other baselines- Figer abstract and Figer specific. Further, we also process the text with the CoreNLP NER (Manning et al., 2014) to delexicalize additional NER classes not covered by FIGER. We include in this list mentions of date, time, money, number, and ordinal. After choosing a delexicalization method,  the named entities are aligned between the claim and evidence next. A named entity if it appears first in the claim is assigned an id postfixed with \#C\textit{n}; similarly if the entity mention appears only in evidence, \#E\textit{n}. Here C indicates that the entity first appeard in the claim, and n indicates the nth observed entity. Table shows an example of output for this data distillation process.
-Based on the findings of \citep{suntwal-etal-2019-importance} that named entities (NEs) are most likely to overfit in a fact verification task, we delexicalize our data by replacing NEs with their semantic classes (and a unique id). To detect and replace named entities with their most specific label returned by the Named Entity Recognizer (NER) we use their solution of Overlap Aware (OA-NER), which relies on CoreNLP \cite{manning2014stanford} NE labels. In addition, we propose two new ones based on the FIGER-NER \citep{ling2012fine}: 
+Based on the findings of previous chapters that named entities (NEs) are most likely to overfit in a fact verification task, we delexicalize our data by replacing NEs with their semantic classes (and a unique id). To detect and replace named entities with their most specific label returned by the Named Entity Recognizer (NER) we use their solution of Overlap Aware (OA-NER), which relies on CoreNLP \cite{manning2014stanford} NE labels. In addition, we propose two new ones based on the FIGER-NER \citep{ling2012fine}: 
 
 \begin{description}
 \item[FIGER Abstract]: Replaces NEs with the most abstract classes returned by the FIGER NER, (e.g.,  {\tt LOCATION} for {\em Los Angeles}).
@@ -97,16 +70,12 @@ More formally, each student component includes a regular classification loss (im
 
 The intuition behind our approach is that by providing multiple data distillation options to choose from we encourage the student methods to `pull' towards each other and the original underlying semantics. The part of semantic knowledge that is obscured from a student method due to the particular delexicalization technique used in the dataset version it sees, is instead learned in its effort to perform on par with other methods.
 Thus, similar to a classroom environment where the students learn from both, known labels (e.g., a textbook) and by helping another student learn, each student is able to thus choose the right amount of granularity needed to enhance its own understanding.
-\vspace*{-1mm}
-\subsection{Classifiers}
 
-Since it had achieved state-of-the art results in many NLP tasks, including fact verification, BERT \citep{devlin-etal-2019-bert} 
+\section{Models and Data}
+
+\textbf{Models:} Since it had achieved state-of-the art results in many NLP tasks, including fact verification, BERT \citep{devlin-etal-2019-bert} 
 %(with transformer networks \citep{vaswani2017attention} as the underlying classifier) 
-was our  choice for the pre-trained model used in our experiments. We experiment with two variants, BERT-Base, and Mini BERT \cite {turc2019well}, a light-weight version of BERT, both from the Hugging Face repository \citep{wolf2019huggingface}. 
-
-\section{Experiments}
-
-
+was our  choice for the pre-trained model used in our experiments. We experiment with two variants, BERT-Base, and Mini BERT \cite {turc2019well}, a light-weight version of BERT, both from the Hugging Face repository \citep{wolf2019huggingface}.
 \textbf{Data:} We use two distinct fact verification datasets for
 our experiments,The Fact Extraction and Verification (FEVER) dataset  \citep{thorne-etal-2018-fact} and the Fake News Challenge (FNC) dataset \citep{pomerleau2017fake}.
 
@@ -115,10 +84,10 @@ The FEVER dataset consists of 145,449 data points each having a claim and eviden
 The FNC dataset comprises claim-evidence pairs that were divided into four classes, \textit{agree, disagree, discuss} and \textit{unrelated}. These claim-evidence pairs were created using the headlines and content section of real news articles respectively. While the training partition of the publicly available dataset comprised of 49,972 data points, the testing partition had 25,413 data points. We further divided the training partition into
 40,904 data points for training and 9,068 data points for development.
 
-In order to evaluate the proposed methods in a cross-domain setting, we modified the label space of the source domain to match that of the target domain as done in \cite{suntwal-etal-2019-importance}.
+In order to evaluate the proposed methods in a cross-domain setting, we modified the label space of the source domain to match that of the target domain as done in previous chapters.
 
-
-\textbf{Setting:} In all the experiments, the performance of the underlying method on the respective original, lexicalized data is considered as the baseline. In the baseline model, we use the default hyper parameters from Hugging Face. 
+\section{Experiments}
+In all the experiments, the performance of the underlying method on the respective original, lexicalized data is considered as the baseline. In the baseline model, we use the default hyper parameters from Hugging Face. 
 We focus our analysis on cross-domain evaluation, i.e., we train all methods on one dataset  (e.g., FEVER) and evaluate their accuracy on the other dataset (e.g., FNC). At the end of training, the best student model from the list of all the trained models is saved to be used for evaluation.
 
 
